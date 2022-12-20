@@ -25,9 +25,10 @@ def kmeans_elbow_function(data, kmin, kmax):
         # Sumo las distancias mínimas de cada elemento. Obtengo un array con la suma
         # de las distancias mínimas al cuadrado (clúster asignado)
         y.append(np.sum(np.min(dists, axis=1) ** 2))
-    plt.figure(figsize=(16,8))
+    plt.figure(figsize=(16, 8))
     plt.plot(range(kmin, kmax+1), y)
     plt.xlabel('k')
     plt.ylabel('SSE')
     plt.title('The Elbow Method showing the optimal k')
     return plt
+
