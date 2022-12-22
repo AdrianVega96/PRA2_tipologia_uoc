@@ -32,3 +32,11 @@ def kmeans_elbow_function(data, kmin, kmax):
     plt.title('The Elbow Method showing the optimal k')
     return plt
 
+def plot_accidents(dataset):
+    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+    ax.scatter(dataset['Start_Lng'], dataset['Start_Lat'], s=8, alpha=.1)
+    ax.set_xlabel('Longitude')
+    ax.set_ylabel('Latitude')
+    ax.axis('equal')
+    plt.tight_layout()
+    return plt
