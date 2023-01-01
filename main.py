@@ -1,8 +1,5 @@
 # Basics
 import pandas as pd
-
-from sklearn.cluster import DBSCAN
-
 import functions.functions as functions
 import functions.Limpieza as Limpieza
 
@@ -11,22 +8,19 @@ print('Loading data...')
 dataset = pd.read_csv(r"dataset\US_Accidents_dataset.csv")
 print('Data loaded')
 
-
+##################################### 2.Integración y selección ###############################################
+print('Comienza la Integración y selección ...')
+dataset = Limpieza.SelectColumns(dataset)
+dataset = Limpieza.ColumnTransform(dataset)
 ##################################### 3.Limpieza de los datos ###############################################
+
 
 
 ############################################################################################################
 #            3.1. ¿Los datos contienen ceros o elementos vacíos? Gestiona cada uno de estos casos.         #                                                                           #
 ############################################################################################################
-
-# Descriptive analisis
-dataset.describe()
-print(dataset.describe())
-
-
-#  Count None
-dataset = dataset.isnull().sum()
-
+print('Comienza la limpieza de NaNs ...')
+dataset = Limpieza.CleanNan(dataset)
 
 
 
@@ -35,8 +29,11 @@ dataset = dataset.isnull().sum()
 ############################################################################################################
 #                        3.2. Identifica y gestiona los valores extremos                                   #                                                                           #
 ############################################################################################################
-
-
+print('Comienza el tratamiento de Outliers ...')
+dataset = Limpieza.CleanOutlier(dataset)
+dataset = Limpieza.Sampling(dataset)
+dataset = Limpieza.RemoveColumns(dataset)
+dataset.to_csv("test.csv")
 
 
 
