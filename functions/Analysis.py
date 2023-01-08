@@ -1,6 +1,7 @@
 # Basics
 import pandas as pd
 import numpy as np
+import scipy.stats as ss
 
 # Clustering
 from sklearn import cluster
@@ -40,3 +41,33 @@ def plot_accidents(dataset):
     ax.axis('equal')
     plt.tight_layout()
     return plt
+
+
+# Función para normalizar dataframe
+def mean_norm(df_input):
+    return df_input.apply(lambda x: (x-x.mean())/ x.std(), axis=0)
+
+
+def multiple_anovas(df, cat_item, num_item):
+    from scipy.stats import f_oneway
+    category_list = df.groupby(cat_item)[num_item].apply(list)
+    anova_result = f_oneway(*category_list)
+    print(f'P-value for {cat_item} and {num_item} ANOVA is {anova_result[1]}')
+    if anova_result[1] < 0.05:
+        print('Rejected H0, both are correlated (95%)')
+    else:
+        print('Acepted H0, both are not correlated (95%)')
+
+
+def cramers_v(confusion_matrix):
+    """ calculate Cramers V statistic for categorial-categorial association.
+        uses correction from Bergsma and Wicher,
+    """
+    chi2 = ss.chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.to_numpy().sum()
+    phi2 = chi2/n
+    r,k = confusion_matrix.shape
+    phi2corr = max(0, phi2 - ((k-1)*(r-1))/(n-1))
+    rcorr = r - ((r-1)**2)/(n-1)
+    kcorr = k - ((k-1)**2)/(n-1)
+    return np.sqrt(phi2corr / min( (kcorr-1), (rcorr-1)))

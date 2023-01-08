@@ -1,7 +1,12 @@
 # Basics
 import pandas as pd
-import functions.functions as functions
+
+import functions.Analysis as Analysis
 import functions.Limpieza as Limpieza
+
+from sklearn.model_selection import cross_val_score, train_test_split
+import seaborn as sns
+import statsmodels.api as sm
 
 # Load data
 print('Loading data...')
@@ -36,8 +41,64 @@ dataset = Limpieza.RemoveColumns(dataset)
 dataset.to_csv("test.csv")
 
 
+############################################################################################################
+#                        4.1. Selección de los grupos de datos que se quieren analizar/comparar                                  #                                                                           #
+############################################################################################################
+# Compute the correlation matrix
+df_new = dataset[['Distance(mi)', 'Temperature(F)', 'Wind_Chill(F)', 'Humidity(%)', 'Pressure(in)',
+       'Visibility(mi)', 'Wind_Direction', 'Wind_Speed(mph)','Precipitation(in)', 'Weather_Condition']]
 
+# Calculamos la matriz de correlación para las variables numéricas y las visualizamos con la librería seaborn
+df_numerical = df_new[['Distance(mi)', 'Temperature(F)', 'Wind_Chill(F)', 'Humidity(%)', 'Pressure(in)',
+       'Visibility(mi)', 'Wind_Speed(mph)','Precipitation(in)']]
 
+df_normalizado = Analysis.mean_norm(df_numerical)
+
+corr = df_normalizado.corr()
+
+sns.heatmap(corr)
+
+corr = pd.DataFrame(corr)
+
+# ANOVAs
+print('ANOVAs for "Wind_Direction"')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Distance(mi)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Temperature(F)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Wind_Chill(F)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Humidity(%)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Pressure(in)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Visibility(mi)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Wind_Speed(mph)')
+Analysis.multiple_anovas(df_new, 'Wind_Direction', 'Precipitation(in)')
+print('ANOVAs for "Weather_Condition"')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Distance(mi)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Temperature(F)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Wind_Chill(F)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Humidity(%)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Pressure(in)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Visibility(mi)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Wind_Speed(mph)')
+Analysis.multiple_anovas(df_new, 'Weather_Condition', 'Precipitation(in)')
+
+# Cramer's V for correlation
+confusion_matrix = pd.crosstab(dataset['Weather_Condition'], dataset['Wind_Direction'])
+Analysis.cramers_v(confusion_matrix)
+
+# Elimino la columna Wind_Chill al estar altamente correlacionada con Temperature
+X = df_normalizado[['Distance(mi)', 'Temperature(F)', 'Humidity(%)', 'Pressure(in)',
+       'Visibility(mi)', 'Wind_Speed(mph)','Precipitation(in)']]
+y = dataset['Severity']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.20, random_state = 5)
+
+# Multinomial Logistic Regression
+logit_model = sm.MNLogit(y_train, sm.add_constant(X_train))
+logit_model
+result = logit_model.fit()
+stats = result.summary()
+print(stats)
+
+print('End')
 
 #Plot accidents
 #plt= functions.plot_accidents(dataset)
@@ -58,7 +119,7 @@ dataset.to_csv("test.csv")
 # Al graficar los accidentes se ve que hay punto bastante separados del resto que
 # si estudiamos los outliers seguramente lo sean.
 
-#print('End')
+
 #None
 
 ############ Preguntas
