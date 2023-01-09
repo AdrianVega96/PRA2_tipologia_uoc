@@ -49,6 +49,8 @@ dataset.to_csv('.\dataset\dataset.csv')
 df = dataset[['Severity', 'Distance(mi)', 'Temperature(F)', 'Wind_Chill(F)', 'Humidity(%)', 'Pressure(in)',
        'Visibility(mi)', 'Wind_Direction', 'Wind_Speed(mph)', 'Precipitation(in)', 'Weather_Condition']]
 
+df_clustering = dataset[['Start_Lng', 'Start_Lat']]
+
 df['Severity'] = df['Severity'].astype('category')
 
 ############################################################################################################
@@ -100,7 +102,7 @@ Analysis.multiple_anovas(df, 'Weather_Condition', 'Precipitation(in)')
 
 # Cramer's V for correlation
 confusion_matrix = pd.crosstab(dataset['Weather_Condition'], dataset['Wind_Direction'])
-Analysis.cramers_v(confusion_matrix)
+print(Analysis.cramers_v(confusion_matrix))
 
 # Elimino la columna Wind_Chill al estar altamente correlacionada con Temperature
 X = df_normalizado[['Distance(mi)', 'Temperature(F)', 'Humidity(%)', 'Pressure(in)',
@@ -115,8 +117,6 @@ result = logit_model.fit()
 stats = result.summary()
 print(stats)
 
-prediction = logit_model.predict(X_test)
-
 # K-means
 # Elbow for data
 plot2 = Visualization.kmeans_elbow_function(dataset[['Start_Lat', 'Start_Lng']], 10, 100)
@@ -126,7 +126,7 @@ plot2.show()
 k = 50
 model = cluster.KMeans(n_clusters=k, init='k-means++')
 # Select variables
-X = df.loc[:, ["Start_Lng", "Start_Lat"]]
+X = df_clustering
 
 # clustering
 dtf_X = X.copy()
