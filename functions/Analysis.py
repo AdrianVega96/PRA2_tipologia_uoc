@@ -2,47 +2,13 @@
 import pandas as pd
 import numpy as np
 import scipy.stats as ss
+from scipy import stats
+import pingouin as pg
 
 # Clustering
 from sklearn import cluster
 
 # Graphs
-import matplotlib
-import matplotlib.pyplot as plt
-
-# Preprocessing
-from sklearn import datasets
-from sklearn import preprocessing
-
-# Correlation visualization
-import seaborn as sns
-
-def kmeans_elbow_function(data, kmin, kmax):
-    y = []
-    for n in range(kmin, kmax+1):
-        model = cluster.KMeans(n_clusters=n)
-        # Obtengo un array con las distancias de cada elemento a cada cluster
-        dists = model.fit_transform(data)
-        # Sumo las distancias mínimas de cada elemento. Obtengo un array con la suma
-        # de las distancias mínimas al cuadrado (clúster asignado)
-        y.append(np.sum(np.min(dists, axis=1) ** 2))
-    plt.figure(figsize=(16, 8))
-    plt.plot(range(kmin, kmax+1), y)
-    plt.xlabel('k')
-    plt.ylabel('SSE')
-    plt.title('The Elbow Method showing the optimal k')
-    return plt
-
-def plot_accidents(dataset):
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    ax.scatter(dataset['Start_Lng'], dataset['Start_Lat'], s=8, alpha=.1)
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.axis('equal')
-    plt.tight_layout()
-    return plt
-
-
 # Función para normalizar dataframe
 def mean_norm(df_input):
     return df_input.apply(lambda x: (x-x.mean())/ x.std(), axis=0)
@@ -71,3 +37,64 @@ def cramers_v(confusion_matrix):
     rcorr = r - ((r-1)**2)/(n-1)
     kcorr = k - ((k-1)**2)/(n-1)
     return np.sqrt(phi2corr / min( (kcorr-1), (rcorr-1)))
+
+
+def NormalTest(data, nombre, pl=1):
+    statistic, p_value = stats.kstest(data, 'norm', N=100, args=(np.mean(data), np.std(data, ddof=1)))
+
+    # Interpretación
+    normal = False
+
+    alpha = 0.05
+    if pl == 1:
+        if p_value > alpha:
+            # print(nombre)
+            print('La muestra es Normal. No se rechaza la hipótesis nula H0')
+            normal = True
+        else:
+            # print(nombre)
+            print('La muestra no es Normal. Se rechaza la hipótesis nula H0')
+            normal = False
+
+    return statistic, p_value, normal
+
+
+def sampletest(df):
+    dfs = df.sample(n=100, replace=True)
+    df_input = dfs.select_dtypes(include=np.number)
+    s = pd.DataFrame([NormalTest(df_input[column], column, pl=0) for column in df_input],
+                     columns=["Stats", "P-value", "Normal"])
+    s["Variable"] = [column for column in df_input]
+
+
+def TestHomocedasticidad(data, nombre):
+    # Levene's Test in Python using Pingouin
+    S = pg.homoscedasticity(data, dv=nombre, group='Severity', center="median")
+    return S.loc["levene", "W"], S.loc["levene", "pval"], S.loc["levene", "equal_var"]
+
+    # s1=data.loc[data['Severity']==1,nombre].tolist()
+    # s2=data.loc[data['Severity']==2,nombre].tolist()
+    # s3=data.loc[data['Severity']==3,nombre].tolist()
+    # s4=data.loc[data['Severity']==4,nombre].tolist()
+    # stat, p = bartlett(s1, s2, s3,s4)
+    # alpha=0.5
+    # normal=False
+    # if p>alpha:
+    #    normal=True
+    # else:
+    #    normal=False
+    # return stat, p, normal
+
+
+def SampleHomocedasticidad(df):
+    dfs = df  # df.sample(n=1000,replace=True)
+    var_name = [column for column in dfs.select_dtypes(include=np.number)]
+    variables = var_name + ['Severity']
+    df_input = dfs[variables]
+    s = [TestHomocedasticidad(df_input.loc[:, ['Severity', column]], column) for column in var_name]
+    df_var = pd.DataFrame(s, columns=["W", "P-value", "equal_var"])
+    # df_var=pd.DataFrame(s,columns=["stat","p","equal_var"])
+    df_var["Variable"] = var_name
+
+    return df_var
+
