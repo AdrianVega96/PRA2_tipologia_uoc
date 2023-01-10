@@ -7,3 +7,4 @@ El proyecto, al igual que la primera práctica, se compone de un fichero *main.p
 El dataset, debido a la extensión del mismo, no se ha podido incluir en el repositorio Git. Por este motivo, nos remitimos a añadir la url donde podemos encontrarlo. Para ejecutar el código, este dataset debe incluirse en el directorio */dataset* del proyecto.
 
 El dataset se encuentra en la URL: https://www.kaggle.com/datasets/sobhanmoosavi/us-accidents
+El enlace del video explicativo se puede encontrar en la URL: https://drive.google.com/drive/folders/1i26Gbrzuh1k85A5_RQTIWUwgJdTet3Pj?usp=sharing
